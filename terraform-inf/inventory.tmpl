@@ -1,0 +1,8 @@
+[BastionHost]
+${BastionIP}
+
+[DBservers]
+${DBip}
+
+[DBservers:vars]
+ansible_ssh_common_args=-i ../disposable-key.pem -J centos@${BastionIP}

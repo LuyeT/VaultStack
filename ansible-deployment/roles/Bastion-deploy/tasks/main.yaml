@@ -1,0 +1,14 @@
+---
+
+- name: install netcat
+  dnf:
+    name: nmap-ncat
+    state: present
+  become: yes
+
+# - name: copy ssh key for private hosts
+#   copy:
+#     src: ../files/disposable-key.pem
+#     dest: /home/centos/.ssh/id_rsa
+#     mode: "u=rw,go="
+

@@ -1,0 +1,46 @@
+---
+
+- name: deploy /etc/hosts template
+  template:
+    src: ./templates/hosts.j2
+    dest: /etc/hosts
+    force: yes
+  become: yes
+
+# !!!!! once up and running, be sure to retest with AllowZoneDrifting=no
+- name: systemd firewalld start/enable
+  systemd:
+    name: firewalld
+    state: restarted
+    enabled: yes
+  become: yes
+
+- name: add http firewall service
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+  become: yes
+
+- name: add https firewall service
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+  become: yes
+
+- name: open port 80 for certbot validation
+  firewalld:
+    port: 80/tcp
+    permanent: yes
+    state: enabled
+  become: yes
+
+- name: open port 8200 for vault
+  firewalld:
+    port: 8200/tcp
+    permanent: yes
+    state: enabled
+  become: yes
+
+

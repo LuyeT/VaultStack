@@ -1,0 +1,118 @@
+---
+# 1. install vault
+# 2. configure vault
+#   - /etc/vault.d/vault.hcl
+#   - storage
+#     just file storage for the time being
+#   - network
+#     open port 8200 and 80
+#     add local ip and domain to /etc/hosts
+#   - TLS/certificates?
+#     install snapd
+#     install certbot through snapd
+#     generate certs with "sudo certbot certonly --standalone"
+#     chmod -R "u=rwX,g=rX" /etc/letsencrypt/{live,archive}
+#   - start/enable vault service, export VAULT_ADDR
+#   - chronyd replaced NTP - Audit to make sure it's suitable
+# 3. init
+#   - manage seal tokens
+# 4. unseal
+# 5. AWS cli authentication - IAM
+# 6. cli DB authentication
+
+- name: update system packages
+  dnf:
+    name: "*"
+    state: latest
+  become: yes
+
+# hacky solution, due to what appears to be a bug with enablerepo module
+- name: Add HashiCorp yum repo
+  command: yum-config-manager --add-repo=https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+  become: yes
+  args:
+    creates: /etc/yum.repos.d/hashicorp.repo
+
+# hacky solution, due to what appears to be a bug with enablerepo module
+- name: Add EPEL yum repo
+  command: dnf -y install epel-release
+  become: yes
+#  args:
+#    creates:
+
+- name: dnf-upgrade
+  command: dnf -y upgrade
+  become: yes
+
+# certbot can be installed through repos or through snapd
+# installing and preparing snapd has proved to be finicky as manual snapd installation
+# involves relogging, adding binaries to PATH has not worked
+# certbot from repos does not seem to set up a cron job for renewal, so this needs a task of its own
+# I've decided to go for the route of certbot from repos
+- name: install needed packages from repo's
+  yum:
+    enablerepo:
+      - "https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo"
+      - "epel-release"
+    name:
+      - epel-release
+      - vault
+      - firewalld
+      - certbot
+      #- snapd
+    state: latest
+  become: yes
+
+- name: deploy vault.hcl template
+  template:
+    src: ./templates/vault.hcl.j2
+    dest: /etc/vault.d/vault.hcl
+    force: yes
+  become: yes
+
+- import_tasks: ./network.yml
+#- import_tasks: ./certbot.yml
+
+- name: generate certs through certbot
+  command: certbot certonly --standalone --agree-tos --email {{ domain_email }} -d {{ vault_domain }}
+  args:
+    creates: /etc/letsencrypt/live/{{ vault_domain }}/fullchain.pem
+  become: yes
+
+- name: Setup cronjob for renewal
+  cron:
+    name: certbot-renewal
+    job: "/bin/bash -lc '/usr/bin/certbot -q renew'"
+    minute: "0"
+    hour: "14"
+    weekday: "1"
+    user: root
+    cron_file: certbot-renewal
+  become: yes
+
+- name: make certs readable for vault system user [1/2]
+  ansible.builtin.file:
+    path: /etc/letsencrypt/live
+    state: directory
+    owner: root
+    group: vault
+    mode: "u=rwX,g=rX"
+    recurse: yes
+  become: yes
+
+- name: make certs readable for vault system user [2/2]
+  ansible.builtin.file:
+    path: /etc/letsencrypt/archive
+    state: directory
+    owner: root
+    group: vault
+    mode: "u=rwX,g=rX"
+    recurse: yes
+  become: yes
+
+- name: start/enable vault service
+  systemd:
+    name: vault
+    state: started
+    enabled: yes
+  become: yes

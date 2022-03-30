@@ -1,0 +1,26 @@
+---
+# This playbook deploys the whole application stack in this site.
+
+#- name: apply common configuration to all nodes
+#  hosts: all
+#  remote_user: centos
+#  roles:
+#    - common
+
+- name: Deploy bastion host
+  hosts: BastionHost
+  remote_user: centos
+  roles:
+    - Bastion-deploy
+
+- name: configure and deploy vaultserver
+  hosts: vaultservers
+  remote_user: centos
+  roles:
+    - Vaultservers-config-deploy
+
+- name: Deploy DBservers
+  hosts: DBservers
+  remote_user: centos
+  roles:
+    - DBservers-deploy

@@ -1,0 +1,6 @@
+---
+- name: install mariadb
+  dnf:
+    name: mariadb
+    state: present
+  become: yes
