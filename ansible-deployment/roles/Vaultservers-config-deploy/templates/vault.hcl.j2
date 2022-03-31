@@ -13,26 +13,14 @@ storage "file" {
 #  path    = "vault"
 #}
 
-# HTTP listener
-# listener "tcp" {
-#   address       = "vault.luyeblog.com:8200"
-#   # address = "127.0.0.1:8200"
-#   tls_disable = 1
-# }
-
 # HTTPS listener
 listener "tcp" {
   address       = "{{ vault_domain }}:8200"
   # tls_cert_file = "/opt/vault/tls/tls.crt"
   # tls_key_file  = "/opt/vault/tls/tls.key"
   # --- Letsencrypt/certbot certs
-  tls_cert_file = "/etc/letsencrypt/live/{{ vault_domain }}/fullchain.pem"
-  tls_key_file  = "/etc/letsencrypt/live/{{ vault_domain }}/privkey.pem"
-  # tls_ca_file  = "/etc/letsencrypt/live/vault.luyeblog.com/chain.pem"
-  # --- Selfsigned certs
-  # tls_cert_file = "/opt/vault/tls/luyeblog.crt"
-  # tls_key_file  = "/opt/vault/tls/luyeblog.key"
-  #tls_ca_file   = "/opt/vault/tls/luyeblog.pem"
+  tls_cert_file = "/opt/vault/tls/fullchain.pem"
+  tls_key_file  = "/opt/vault/tls/privkey.pem"
 }
 api_addr         = "https://{{ vault_domain }}:8200"
 # Enterprise license_path

@@ -16,3 +16,8 @@ terraform {
     #  }
   }
 }
+
+
+module "sec_groups" {
+  source = "./sec_groups/"
+}

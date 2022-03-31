@@ -14,7 +14,7 @@
     - Bastion-deploy
 
 - name: configure and deploy vaultserver
-  hosts: vaultservers
+  hosts: Vaultservers
   remote_user: centos
   roles:
     - Vaultservers-config-deploy

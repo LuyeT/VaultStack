@@ -1,0 +1,28 @@
+---
+- name: Configure DBserver image
+  hosts: all
+  gather_facts: false
+
+  tasks:
+  - name: update system packages
+    dnf:
+      name: "*"
+      state: latest
+    become: yes
+
+  - name: Install packages
+    dnf:
+      name:
+        - firewalld
+        - mariadb
+        - mariadb-server
+        - pwgen
+        - python3-mysql
+    become: yes
+
+  - name: open port 3306 for mariadb
+    firewalld:
+      port: 3306/tcp
+      permanent: yes
+      state: enabled
+    become: yes
