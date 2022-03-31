@@ -1,5 +1,5 @@
 resource "aws_security_group" "allow_http_all" {
-  name        = "Allow_vault-http_myIP"
+  name        = "Allow_http_all"
   vpc_id      = aws_vpc.main.id
 
   ingress {
